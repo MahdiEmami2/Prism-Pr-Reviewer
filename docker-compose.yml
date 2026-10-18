@@ -1,0 +1,67 @@
+# Docker Compose for local use.
+#
+# PRISM is a single stateless service, so Compose is optional and used here only to make the
+# container easy to run with sane hardening flags. There is no database, no broker and no
+# second service, because the application does not need one.
+#
+# Usage:
+#   cp .env.example .env        # then edit it; never commit .env
+#   docker compose up --build
+#   curl http://127.0.0.1:8000/health
+
+services:
+  prism:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prism:local
+    container_name: prism
+    restart: unless-stopped
+
+    # The token is optional and comes from the environment, never from the image.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PRISM_ENABLE_EXTERNAL_TOOLS: "false"
+      PRISM_ENABLE_LLM_EXTENSION: "false"
+      PRISM_INCLUDE_GENERATED_AT: "false"
+
+    ports:
+      - "127.0.0.1:8000:8000"
+
+    # Hardening: the service analyses untrusted input, so it gets no extra privilege.
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    user: "10001:10001"
+
+    # Resource caps so a pathological diff cannot exhaust the host.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          memory: 128M
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json,urllib.request;print(json.load(urllib.request.urlopen('http://127.0.0.1:8000/health'))['status'])"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prism-reviewer"
+version = "0.1.0"
+description = "PRISM — Intelligent Pull Request Reviewer: deterministic static analysis for local git diffs and GitHub pull requests."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "PRISM contributors" }]
+keywords = ["static-analysis", "code-review", "pull-request", "security", "ast"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+  "fastapi>=0.110,<1.0",
+  "pydantic>=2.6,<3.0",
+  "httpx>=0.27,<1.0",
+  "uvicorn>=0.29,<1.0",
+  "defusedxml>=0.7,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "pytest-asyncio>=0.23",
+  "respx>=0.21",
+  "ruff>=0.6",
+  "bandit>=1.7",
+]
+
+[project.urls]
+Documentation = "https://github.com/example/prism#readme"
+
+[project.scripts]
+prism = "prism.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["prism*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+filterwarnings = ["error::DeprecationWarning:prism.*"]
+markers = [
+  "integration: requires network access or real credentials; opt-in via PRISM_RUN_INTEGRATION=1",
+]
+
+[tool.coverage.run]
+source = ["prism"]
+branch = true
+omit = ["prism/__main__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [".git", ".venv", "dist", "build", "samples/sample_project/.git"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RET", "S", "ARG", "PTH", "RUF"]
+ignore = [
+  "S101",   # asserts are the point of a test suite
+  "RUF001", # ambiguous unicode in docstrings is intentional prose
+  "RUF002",
+  "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# FastAPI exception handlers and middleware must accept a `request` argument as part of the
+# framework signature even when the handler does not need it.
+"prism/api/*" = ["ARG001"]
+# Tests embed source snippets and diff fixtures as inline strings, so a 100-column limit
+# would force unnatural wrapping. Everything else in the lint set still applies.
+"tests/*" = ["S101", "S105", "S106", "S108", "ARG001", "ARG002", "ARG005", "PTH", "E501"]
+# The sample project is intentionally bad code; linting it is not meaningful.
+"samples/*" = ["S", "E", "F", "W", "B", "SIM", "N", "UP", "C4", "RET", "ARG", "PTH", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["prism"]
+
+[tool.bandit]
+exclude_dirs = ["tests", "samples", ".git", "dist", "build"]

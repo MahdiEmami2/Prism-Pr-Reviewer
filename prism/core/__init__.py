@@ -1,0 +1,55 @@
+"""Core building blocks: configuration, shared types, errors, limits, logging."""
+
+from prism.core.config import PrismConfig
+from prism.core.exceptions import (
+    ConfigError,
+    CoverageError,
+    ExternalToolError,
+    GitHubAuthError,
+    GitHubError,
+    GitHubNotFoundError,
+    GitHubRateLimitError,
+    GitHubResponseTooLargeError,
+    InputTooLargeError,
+    InputValidationError,
+    PrismError,
+    TooManyFilesError,
+    UnsupportedInputError,
+)
+from prism.core.types import (
+    CONFIDENCE_MEANING,
+    SEVERITY_ORDER,
+    Confidence,
+    FileStatus,
+    FindingClass,
+    ReviewMode,
+    Severity,
+    severity_at_least,
+    severity_rank,
+)
+
+__all__ = [
+    "CONFIDENCE_MEANING",
+    "SEVERITY_ORDER",
+    "Confidence",
+    "ConfigError",
+    "CoverageError",
+    "ExternalToolError",
+    "FileStatus",
+    "FindingClass",
+    "GitHubAuthError",
+    "GitHubError",
+    "GitHubNotFoundError",
+    "GitHubRateLimitError",
+    "GitHubResponseTooLargeError",
+    "InputTooLargeError",
+    "InputValidationError",
+    "PrismConfig",
+    "PrismError",
+    "ReviewMode",
+    "Severity",
+    "TooManyFilesError",
+    "UnsupportedInputError",
+    "severity_at_least",
+    "severity_rank",
+]

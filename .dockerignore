@@ -1,0 +1,52 @@
+# Build context exclusions for PRISM.
+#
+# The Dockerfile copies only prism/, docs/ and three files, so most of this list is defence
+# in depth: it keeps secrets, local environments and large artefacts out of the build
+# context, and therefore out of any layer cache.
+
+.git
+.gitignore
+.github
+.venv
+venv
+env
+__pycache__
+*.py[cod]
+*.egg-info
+.eggs
+build
+dist
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+.coverage.*
+coverage.xml
+htmlcov
+.tox
+.nox
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Reports and local artefacts produced by a review run
+evidence/
+examples/sample_report.json
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Editors and IDEs
+.idea
+.vscode
+*.swp
+*~

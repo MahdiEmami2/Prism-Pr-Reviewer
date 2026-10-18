@@ -1,0 +1,1071 @@
+{
+  "schema_version": "1.0",
+  "engine": {
+    "name": "PRISM",
+    "version": "0.1.0",
+    "mode": "local_diff"
+  },
+  "metadata": {
+    "title": "PRISM demonstration project (sample, not a real repository)",
+    "source": "local_diff",
+    "demo_data": true
+  },
+  "scope": {
+    "files_in_diff": 7,
+    "files_analysed": 5,
+    "files_skipped": 2,
+    "files_unsupported_language": 2,
+    "files_without_full_source": 0,
+    "added_lines": 481,
+    "removed_lines": 0,
+    "skipped": [
+      {
+        "path": "samples/sample_project/README.md",
+        "reason": "unsupported_language",
+        "detail": "no deterministic rules for '.md'; credential patterns were still checked"
+      },
+      {
+        "path": "samples/sample_project/generate_diff.sh",
+        "reason": "unsupported_language",
+        "detail": "no deterministic rules for '.sh'; credential patterns were still checked"
+      }
+    ],
+    "diagnostics": [],
+    "truncated": false,
+    "complete": true
+  },
+  "summary": {
+    "total_findings": 22,
+    "by_severity": {
+      "critical": 1,
+      "high": 7,
+      "medium": 4,
+      "low": 10,
+      "informational": 0
+    },
+    "by_category": {
+      "correctness": 2,
+      "reliability": 10,
+      "secrets": 2,
+      "security": 8
+    },
+    "deterministic": 20,
+    "heuristic": 2
+  },
+  "findings": [
+    {
+      "finding_id": "SEC002-078ad63734b37fca",
+      "rule_id": "SEC002",
+      "category": "secrets",
+      "title": "Private key material in source",
+      "severity": "critical",
+      "confidence": "high",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 24,
+        "end_line": null,
+        "symbol": null,
+        "hunk_section": null
+      },
+      "message": "Added line contains PEM private key material.",
+      "evidence": [
+        "DEMO_KEY = \"-----BEGIN RSA PRIVATE KEY-----\""
+      ],
+      "risk": "A PEM private key header appears in an added line. Key material in a source tree is readable by everyone with repository access, and the header itself is unambiguous evidence.",
+      "remediation": "Remove the key, rotate it, and load it from a secret store at runtime.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "pem-private-key",
+      "metadata": {},
+      "confidence_meaning": "The diff itself contains the complete evidence: the construct is present in the changed lines and the rule's conclusion does not depend on unseen code."
+    },
+    {
+      "finding_id": "SEC001-f1cb5042f7176ce5",
+      "rule_id": "SEC001",
+      "category": "secrets",
+      "title": "Hard-coded credential",
+      "severity": "high",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 22,
+        "end_line": null,
+        "symbol": "API_KEY",
+        "hunk_section": null
+      },
+      "message": "Literal value assigned to credential-like name 'API_KEY' (hard******************************3a2b).",
+      "evidence": [
+        "API_KEY = \"hardcoded-demo-credential-value-8f3a2b\""
+      ],
+      "risk": "A literal string is assigned to a name that indicates a credential. The assignment is present in the diff; whether the value is a real secret or a throwaway test value cannot be proven from the diff alone, so confidence is medium rather than high.",
+      "remediation": "Read the value from the environment or a secret manager, and rotate the exposed credential if it was ever committed.",
+      "test_recommendation": "Add a test that fails when the secret is absent from settings.",
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "API_KEY=literal",
+      "metadata": {
+        "name": "API_KEY",
+        "value_length": 38
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY004-28006721c50b790f",
+      "rule_id": "PY004",
+      "category": "security",
+      "title": "subprocess execution with shell=True",
+      "severity": "high",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 35,
+        "end_line": null,
+        "symbol": "run_command",
+        "hunk_section": null
+      },
+      "message": "subprocess execution with shell=True",
+      "evidence": [
+        "    return subprocess.run(command, shell=True)"
+      ],
+      "risk": "shell=True routes the command through the platform shell, so any interpolated value becomes shell syntax. The call is definitely shell-based; exploitability depends on where the arguments come from, which the diff may not show.",
+      "remediation": "Pass an argument list with shell=False, or use shlex.quote for every interpolated value if a shell is unavoidable.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "subprocess.run:shell=True",
+      "metadata": {
+        "parser_line": 35,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY008-2d991562fab30ba2",
+      "rule_id": "PY008",
+      "category": "security",
+      "title": "Shell command through os.system / os.popen",
+      "severity": "high",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 40,
+        "end_line": null,
+        "symbol": "run_legacy_command",
+        "hunk_section": null
+      },
+      "message": "Shell command through os.system / os.popen",
+      "evidence": [
+        "    return os.system(command)"
+      ],
+      "risk": "os.system and os.popen always involve a shell, so interpolated values are executed as shell syntax.",
+      "remediation": "Use subprocess.run with an argument list and shell=False.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "os.system",
+      "metadata": {
+        "parser_line": 40,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY005-fa444a0ac167f73f",
+      "rule_id": "PY005",
+      "category": "security",
+      "title": "Dynamic code execution",
+      "severity": "high",
+      "confidence": "high",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 45,
+        "end_line": null,
+        "symbol": "evaluate",
+        "hunk_section": null
+      },
+      "message": "Dynamic code execution",
+      "evidence": [
+        "    return eval(expression)"
+      ],
+      "risk": "eval, exec and compile turn data into code. The construct is unambiguously present in the changed lines and is a recognised code-execution sink.",
+      "remediation": "Replace with a parser or an explicit mapping of allowed operations.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "eval/arity1",
+      "metadata": {
+        "parser_line": 45,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The diff itself contains the complete evidence: the construct is present in the changed lines and the rule's conclusion does not depend on unseen code."
+    },
+    {
+      "finding_id": "PY006-8409fc7b6979085d",
+      "rule_id": "PY006",
+      "category": "security",
+      "title": "Deserialisation of untrusted data",
+      "severity": "high",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 50,
+        "end_line": null,
+        "symbol": "load_state",
+        "hunk_section": null
+      },
+      "message": "Deserialisation of untrusted data",
+      "evidence": [
+        "    return pickle.loads(blob)"
+      ],
+      "risk": "pickle, dill and marshal can execute code while loading. The call is present; whether the payload is trusted cannot be decided from the diff.",
+      "remediation": "Use a data-only format such as JSON, or restrict unpickling to an allow-listed Unpickler.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "pickle.loads",
+      "metadata": {
+        "parser_line": 50,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY007-f14ea6fac3951678",
+      "rule_id": "PY007",
+      "category": "security",
+      "title": "Unsafe YAML load",
+      "severity": "high",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 55,
+        "end_line": null,
+        "symbol": "read_config",
+        "hunk_section": null
+      },
+      "message": "Unsafe YAML load",
+      "evidence": [
+        "    return yaml.load(text)"
+      ],
+      "risk": "yaml.load without SafeLoader constructs arbitrary Python objects. The unsafe call is present; the trust level of the document is outside the diff.",
+      "remediation": "Use yaml.safe_load, or pass Loader=yaml.SafeLoader.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "yaml.load:loader=default",
+      "metadata": {
+        "parser_line": 55,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY011-a1bfbd38a7c2e83d",
+      "rule_id": "PY011",
+      "category": "security",
+      "title": "TLS verification disabled",
+      "severity": "high",
+      "confidence": "high",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 72,
+        "end_line": null,
+        "symbol": "fetch",
+        "hunk_section": null
+      },
+      "message": "TLS verification disabled",
+      "evidence": [
+        "    return requests.get(url, verify=False)"
+      ],
+      "risk": "verify=False disables certificate validation for the whole request.",
+      "remediation": "Remove verify=False; install the missing CA bundle instead.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "requests.get:verify=False",
+      "metadata": {
+        "parser_line": 72,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The diff itself contains the complete evidence: the construct is present in the changed lines and the rule's conclusion does not depend on unseen code."
+    },
+    {
+      "finding_id": "PY001-29d043b74d0cc6e9",
+      "rule_id": "PY001",
+      "category": "correctness",
+      "title": "Mutable default argument",
+      "severity": "medium",
+      "confidence": "high",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 27,
+        "end_line": null,
+        "symbol": "collect",
+        "hunk_section": null
+      },
+      "message": "Mutable default argument: collect",
+      "evidence": [
+        "def collect(items=[]):  # PY001"
+      ],
+      "risk": "A default value that is a list, dict, or set literal is created once at function definition time and shared across every call. Mutating it inside the function leaks state between calls, which is a documented language behaviour, not a style preference.",
+      "remediation": "Use None as the default and build the container inside the body.",
+      "test_recommendation": "Call the function twice and assert the second call is unaffected.",
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "collect:List",
+      "metadata": {
+        "parser_line": 27,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The diff itself contains the complete evidence: the construct is present in the changed lines and the rule's conclusion does not depend on unseen code."
+    },
+    {
+      "finding_id": "PY009-744bf76eabf38ca7",
+      "rule_id": "PY009",
+      "category": "security",
+      "title": "Insecure temporary file creation",
+      "severity": "medium",
+      "confidence": "high",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 60,
+        "end_line": null,
+        "symbol": "scratch_path",
+        "hunk_section": null
+      },
+      "message": "Insecure temporary file creation",
+      "evidence": [
+        "    return tempfile.mktemp()"
+      ],
+      "risk": "tempfile.mktemp returns a name without creating the file, so another process can claim it first. The standard library documents it as deprecated for this reason.",
+      "remediation": "Use tempfile.NamedTemporaryFile or tempfile.mkstemp.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "tempfile.mktemp",
+      "metadata": {
+        "parser_line": 60,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The diff itself contains the complete evidence: the construct is present in the changed lines and the rule's conclusion does not depend on unseen code."
+    },
+    {
+      "finding_id": "PY002-67343a6c04bfe817",
+      "rule_id": "PY002",
+      "category": "reliability",
+      "title": "Bare except clause",
+      "severity": "medium",
+      "confidence": "high",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 79,
+        "end_line": null,
+        "symbol": "parse",
+        "hunk_section": null
+      },
+      "message": "Bare except clause",
+      "evidence": [
+        "    except:"
+      ],
+      "risk": "A bare 'except:' catches BaseException, including KeyboardInterrupt and SystemExit. This changes process behaviour on interrupt, which the diff alone proves.",
+      "remediation": "Catch the specific exception type, or at least 'except Exception'.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "bare-except",
+      "metadata": {
+        "parser_line": 79,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The diff itself contains the complete evidence: the construct is present in the changed lines and the rule's conclusion does not depend on unseen code."
+    },
+    {
+      "finding_id": "PY003-c9f69a71fa4ff923",
+      "rule_id": "PY003",
+      "category": "reliability",
+      "title": "Exception swallowed without handling",
+      "severity": "medium",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 87,
+        "end_line": null,
+        "symbol": "ignore_errors",
+        "hunk_section": null
+      },
+      "message": "Exception swallowed without handling",
+      "evidence": [
+        "    except ZeroDivisionError:"
+      ],
+      "risk": "An except block whose body is only 'pass' discards the error. The construct is definitely present; whether discarding it is wrong depends on intent that the diff cannot show, hence medium confidence.",
+      "remediation": "Log the exception, re-raise it, or narrow the try block.",
+      "test_recommendation": "Add a test that provokes the exception and asserts the outcome.",
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "swallowed:ZeroDivisionError",
+      "metadata": {
+        "parser_line": 87,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY013-2be863b73cd84719",
+      "rule_id": "PY013",
+      "category": "reliability",
+      "title": "Blocking call without a timeout",
+      "severity": "low",
+      "confidence": "low",
+      "class": "heuristic",
+      "deterministic": false,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 35,
+        "end_line": null,
+        "symbol": "run_command",
+        "hunk_section": null
+      },
+      "message": "Blocking call without a timeout",
+      "evidence": [
+        "    return subprocess.run(command, shell=True)"
+      ],
+      "risk": "A network or subprocess call with no timeout can block indefinitely. Absence of a keyword argument is weak evidence: a timeout may be supplied through a shared session, a wrapper or a decorator that the diff does not contain.",
+      "remediation": "Pass an explicit timeout, or set one on the shared client/session.",
+      "test_recommendation": "Add a test that asserts the call fails fast when the peer stalls.",
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "subprocess.run:no-timeout",
+      "metadata": {
+        "parser_line": 35,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The diff only shows a pattern that often correlates with a problem; the finding is a review prompt and may be a false positive."
+    },
+    {
+      "finding_id": "PY010-b10be778f5802f66",
+      "rule_id": "PY010",
+      "category": "security",
+      "title": "Weak hash algorithm",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 65,
+        "end_line": null,
+        "symbol": "checksum",
+        "hunk_section": null
+      },
+      "message": "Weak hash algorithm",
+      "evidence": [
+        "    return hashlib.md5(payload).hexdigest()"
+      ],
+      "risk": "MD5 and SHA-1 are collision-broken for security purposes. They remain legitimate for non-security checksums, which the diff cannot distinguish.",
+      "remediation": "Use sha256 for security purposes, or pass usedforsecurity=False to record that the hash is not a security control.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "hashlib.md5",
+      "metadata": {
+        "parser_line": 65,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY013-98fe8b20eb99d62f",
+      "rule_id": "PY013",
+      "category": "reliability",
+      "title": "Blocking call without a timeout",
+      "severity": "low",
+      "confidence": "low",
+      "class": "heuristic",
+      "deterministic": false,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 72,
+        "end_line": null,
+        "symbol": "fetch",
+        "hunk_section": null
+      },
+      "message": "Blocking call without a timeout",
+      "evidence": [
+        "    return requests.get(url, verify=False)"
+      ],
+      "risk": "A network or subprocess call with no timeout can block indefinitely. Absence of a keyword argument is weak evidence: a timeout may be supplied through a shared session, a wrapper or a decorator that the diff does not contain.",
+      "remediation": "Pass an explicit timeout, or set one on the shared client/session.",
+      "test_recommendation": "Add a test that asserts the call fails fast when the peer stalls.",
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "requests.get:no-timeout",
+      "metadata": {
+        "parser_line": 72,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The diff only shows a pattern that often correlates with a problem; the finding is a review prompt and may be a false positive."
+    },
+    {
+      "finding_id": "PY012-7ed0fa00a48f3841",
+      "rule_id": "PY012",
+      "category": "correctness",
+      "title": "Unreachable statement after return or raise",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 94,
+        "end_line": null,
+        "symbol": "early_return",
+        "hunk_section": null
+      },
+      "message": "Unreachable statement after return or raise",
+      "evidence": [
+        "    print(\"unreachable\")"
+      ],
+      "risk": "A statement placed in the same block directly after a return, raise, continue or break can never run. Reachability inside one block is decided locally, so the statement is definitely dead; only its intent is unknown.",
+      "remediation": "Delete the dead statement or move it before the terminating statement.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "after-return:Expr(Call(Name('print', Load()), [Constant('unreachable')], []))",
+      "metadata": {
+        "parser_line": 94,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY015-27ea28ad7a87497f",
+      "rule_id": "PY015",
+      "category": "reliability",
+      "title": "Assertion used for runtime validation",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/risky_module.py",
+        "line": 99,
+        "end_line": null,
+        "symbol": "validate",
+        "hunk_section": null
+      },
+      "message": "Assertion used for runtime validation",
+      "evidence": [
+        "    assert flag > 0"
+      ],
+      "risk": "Assertions are removed when Python runs with -O, so a validation performed only with assert disappears in optimised mode.",
+      "remediation": "Raise an explicit exception for input validation.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "Compare(Name('flag', Load()), [Gt()], [Constant(0)])",
+      "metadata": {
+        "parser_line": 99,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY015-c7d4ddce78f98e51",
+      "rule_id": "PY015",
+      "category": "reliability",
+      "title": "Assertion used for runtime validation",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/tests/test_risky_module.py",
+        "line": 26,
+        "end_line": null,
+        "symbol": "test_collect_does_not_share_state_between_calls",
+        "hunk_section": null
+      },
+      "message": "Assertion used for runtime validation",
+      "evidence": [
+        "    assert collect() == [0]"
+      ],
+      "risk": "Assertions are removed when Python runs with -O, so a validation performed only with assert disappears in optimised mode.",
+      "remediation": "Raise an explicit exception for input validation.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "Compare(Call(Name('collect', Load()), [], []), [Eq()], [List([Constant(0)], Load())])",
+      "metadata": {
+        "parser_line": 26,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY015-b0c5cb5da692b73a",
+      "rule_id": "PY015",
+      "category": "reliability",
+      "title": "Assertion used for runtime validation",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/tests/test_risky_module.py",
+        "line": 33,
+        "end_line": null,
+        "symbol": "test_collect_copies_the_caller_list",
+        "hunk_section": null
+      },
+      "message": "Assertion used for runtime validation",
+      "evidence": [
+        "    assert supplied == [\"a\"]"
+      ],
+      "risk": "Assertions are removed when Python runs with -O, so a validation performed only with assert disappears in optimised mode.",
+      "remediation": "Raise an explicit exception for input validation.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "Compare(Name('supplied', Load()), [Eq()], [List([Constant('a')], Load())])",
+      "metadata": {
+        "parser_line": 33,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY015-e6b4ef7edb72f0e8",
+      "rule_id": "PY015",
+      "category": "reliability",
+      "title": "Assertion used for runtime validation",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/tests/test_risky_module.py",
+        "line": 37,
+        "end_line": null,
+        "symbol": "test_parse_returns_zero_for_unparseable_input",
+        "hunk_section": null
+      },
+      "message": "Assertion used for runtime validation",
+      "evidence": [
+        "    assert parse(\"not a number\") == 0"
+      ],
+      "risk": "Assertions are removed when Python runs with -O, so a validation performed only with assert disappears in optimised mode.",
+      "remediation": "Raise an explicit exception for input validation.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "Compare(Call(Name('parse', Load()), [Constant('not a number')], []), [Eq()], [Constant(0)])",
+      "metadata": {
+        "parser_line": 37,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY015-d5859fdb2779902f",
+      "rule_id": "PY015",
+      "category": "reliability",
+      "title": "Assertion used for runtime validation",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/tests/test_risky_module.py",
+        "line": 38,
+        "end_line": null,
+        "symbol": "test_parse_returns_zero_for_unparseable_input",
+        "hunk_section": null
+      },
+      "message": "Assertion used for runtime validation",
+      "evidence": [
+        "    assert parse(\"41\") == 41"
+      ],
+      "risk": "Assertions are removed when Python runs with -O, so a validation performed only with assert disappears in optimised mode.",
+      "remediation": "Raise an explicit exception for input validation.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "Compare(Call(Name('parse', Load()), [Constant('41')], []), [Eq()], [Constant(41)])",
+      "metadata": {
+        "parser_line": 38,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    },
+    {
+      "finding_id": "PY015-317628affc0c3720",
+      "rule_id": "PY015",
+      "category": "reliability",
+      "title": "Assertion used for runtime validation",
+      "severity": "low",
+      "confidence": "medium",
+      "class": "deterministic",
+      "deterministic": true,
+      "location": {
+        "path": "samples/sample_project/tests/test_risky_module.py",
+        "line": 47,
+        "end_line": null,
+        "symbol": "test_validate_rejects_non_positive_values",
+        "hunk_section": null
+      },
+      "message": "Assertion used for runtime validation",
+      "evidence": [
+        "    assert validate(1) == 1"
+      ],
+      "risk": "Assertions are removed when Python runs with -O, so a validation performed only with assert disappears in optimised mode.",
+      "remediation": "Raise an explicit exception for input validation.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md",
+      "signature": "Compare(Call(Name('validate', Load()), [Constant(1)], []), [Eq()], [Constant(1)])",
+      "metadata": {
+        "parser_line": 47,
+        "analysis_view": "complete"
+      },
+      "confidence_meaning": "The construct is present, but concluding real risk needs context outside the diff (data origin, surrounding configuration, caller behaviour)."
+    }
+  ],
+  "tools": [],
+  "coverage": {
+    "available": false,
+    "reason": "no report supplied"
+  },
+  "suppressed_findings": [],
+  "limitations": [
+    "Static analysis only: PRISM never imports, compiles or executes analysed code, so it cannot prove runtime behaviour.",
+    "A finding describes what the diff contains, not what the program does when it runs.",
+    "Findings are limited to changed lines. Pre-existing problems on unchanged lines are out of scope for a pull-request review.",
+    "Rules in the 'heuristic' class are review prompts derived from patterns. They have a measurable false-positive rate and are never presented as proof.",
+    "2 file(s) use a language PRISM has no deterministic rules for; only credential patterns were applied to them.",
+    "2 file(s) were skipped; the scope section lists each reason.",
+    "No coverage report was supplied, so no statement about test coverage is made."
+  ],
+  "rule_catalog": {
+    "PY001": {
+      "rule_id": "PY001",
+      "title": "Mutable default argument",
+      "category": "correctness",
+      "default_severity": "medium",
+      "default_confidence": "high",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "A default value that is a list, dict, or set literal is created once at function definition time and shared across every call. Mutating it inside the function leaks state between calls, which is a documented language behaviour, not a style preference.",
+      "remediation": "Use None as the default and build the container inside the body.",
+      "test_recommendation": "Call the function twice and assert the second call is unaffected.",
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY002": {
+      "rule_id": "PY002",
+      "title": "Bare except clause",
+      "category": "reliability",
+      "default_severity": "medium",
+      "default_confidence": "high",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "A bare 'except:' catches BaseException, including KeyboardInterrupt and SystemExit. This changes process behaviour on interrupt, which the diff alone proves.",
+      "remediation": "Catch the specific exception type, or at least 'except Exception'.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY003": {
+      "rule_id": "PY003",
+      "title": "Exception swallowed without handling",
+      "category": "reliability",
+      "default_severity": "medium",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "An except block whose body is only 'pass' discards the error. The construct is definitely present; whether discarding it is wrong depends on intent that the diff cannot show, hence medium confidence.",
+      "remediation": "Log the exception, re-raise it, or narrow the try block.",
+      "test_recommendation": "Add a test that provokes the exception and asserts the outcome.",
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY004": {
+      "rule_id": "PY004",
+      "title": "subprocess execution with shell=True",
+      "category": "security",
+      "default_severity": "high",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "shell=True routes the command through the platform shell, so any interpolated value becomes shell syntax. The call is definitely shell-based; exploitability depends on where the arguments come from, which the diff may not show.",
+      "remediation": "Pass an argument list with shell=False, or use shlex.quote for every interpolated value if a shell is unavoidable.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY005": {
+      "rule_id": "PY005",
+      "title": "Dynamic code execution",
+      "category": "security",
+      "default_severity": "high",
+      "default_confidence": "high",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "eval, exec and compile turn data into code. The construct is unambiguously present in the changed lines and is a recognised code-execution sink.",
+      "remediation": "Replace with a parser or an explicit mapping of allowed operations.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY006": {
+      "rule_id": "PY006",
+      "title": "Deserialisation of untrusted data",
+      "category": "security",
+      "default_severity": "high",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "pickle, dill and marshal can execute code while loading. The call is present; whether the payload is trusted cannot be decided from the diff.",
+      "remediation": "Use a data-only format such as JSON, or restrict unpickling to an allow-listed Unpickler.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY007": {
+      "rule_id": "PY007",
+      "title": "Unsafe YAML load",
+      "category": "security",
+      "default_severity": "high",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "yaml.load without SafeLoader constructs arbitrary Python objects. The unsafe call is present; the trust level of the document is outside the diff.",
+      "remediation": "Use yaml.safe_load, or pass Loader=yaml.SafeLoader.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY008": {
+      "rule_id": "PY008",
+      "title": "Shell command through os.system / os.popen",
+      "category": "security",
+      "default_severity": "high",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "os.system and os.popen always involve a shell, so interpolated values are executed as shell syntax.",
+      "remediation": "Use subprocess.run with an argument list and shell=False.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY009": {
+      "rule_id": "PY009",
+      "title": "Insecure temporary file creation",
+      "category": "security",
+      "default_severity": "medium",
+      "default_confidence": "high",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "tempfile.mktemp returns a name without creating the file, so another process can claim it first. The standard library documents it as deprecated for this reason.",
+      "remediation": "Use tempfile.NamedTemporaryFile or tempfile.mkstemp.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY010": {
+      "rule_id": "PY010",
+      "title": "Weak hash algorithm",
+      "category": "security",
+      "default_severity": "low",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "MD5 and SHA-1 are collision-broken for security purposes. They remain legitimate for non-security checksums, which the diff cannot distinguish.",
+      "remediation": "Use sha256 for security purposes, or pass usedforsecurity=False to record that the hash is not a security control.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY011": {
+      "rule_id": "PY011",
+      "title": "TLS verification disabled",
+      "category": "security",
+      "default_severity": "high",
+      "default_confidence": "high",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "verify=False disables certificate validation for the whole request.",
+      "remediation": "Remove verify=False; install the missing CA bundle instead.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY012": {
+      "rule_id": "PY012",
+      "title": "Unreachable statement after return or raise",
+      "category": "correctness",
+      "default_severity": "low",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "A statement placed in the same block directly after a return, raise, continue or break can never run. Reachability inside one block is decided locally, so the statement is definitely dead; only its intent is unknown.",
+      "remediation": "Delete the dead statement or move it before the terminating statement.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY013": {
+      "rule_id": "PY013",
+      "title": "Blocking call without a timeout",
+      "category": "reliability",
+      "default_severity": "low",
+      "default_confidence": "low",
+      "class": "heuristic",
+      "languages": [
+        "python"
+      ],
+      "description": "A network or subprocess call with no timeout can block indefinitely. Absence of a keyword argument is weak evidence: a timeout may be supplied through a shared session, a wrapper or a decorator that the diff does not contain.",
+      "remediation": "Pass an explicit timeout, or set one on the shared client/session.",
+      "test_recommendation": "Add a test that asserts the call fails fast when the peer stalls.",
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY014": {
+      "rule_id": "PY014",
+      "title": "Syntax error in an added file",
+      "category": "correctness",
+      "default_severity": "high",
+      "default_confidence": "high",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "The added file does not parse as Python. This is a definite language-level fact about the file content, not a heuristic.",
+      "remediation": "Fix the syntax error reported by the parser.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "PY015": {
+      "rule_id": "PY015",
+      "title": "Assertion used for runtime validation",
+      "category": "reliability",
+      "default_severity": "low",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "Assertions are removed when Python runs with -O, so a validation performed only with assert disappears in optimised mode.",
+      "remediation": "Raise an explicit exception for input validation.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "SEC001": {
+      "rule_id": "SEC001",
+      "title": "Hard-coded credential",
+      "category": "secrets",
+      "default_severity": "high",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "text",
+        "python",
+        "yaml",
+        "properties"
+      ],
+      "description": "A literal string is assigned to a name that indicates a credential. The assignment is present in the diff; whether the value is a real secret or a throwaway test value cannot be proven from the diff alone, so confidence is medium rather than high.",
+      "remediation": "Read the value from the environment or a secret manager, and rotate the exposed credential if it was ever committed.",
+      "test_recommendation": "Add a test that fails when the secret is absent from settings.",
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "SEC002": {
+      "rule_id": "SEC002",
+      "title": "Private key material in source",
+      "category": "secrets",
+      "default_severity": "critical",
+      "default_confidence": "high",
+      "class": "deterministic",
+      "languages": [
+        "text"
+      ],
+      "description": "A PEM private key header appears in an added line. Key material in a source tree is readable by everyone with repository access, and the header itself is unambiguous evidence.",
+      "remediation": "Remove the key, rotate it, and load it from a secret store at runtime.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "SEC003": {
+      "rule_id": "SEC003",
+      "title": "High-entropy literal next to a secret-like name",
+      "category": "secrets",
+      "default_severity": "medium",
+      "default_confidence": "low",
+      "class": "heuristic",
+      "languages": [
+        "text"
+      ],
+      "description": "A long random-looking literal sits next to a secret-like name. Entropy is a correlation, not proof: build hashes, base64 fixtures and sample data look the same, so this finding is a review prompt only.",
+      "remediation": "Confirm whether the value is a real credential; if it is, move it to a secret store.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "TST001": {
+      "rule_id": "TST001",
+      "title": "Source changed without any test change in this review",
+      "category": "testing",
+      "default_severity": "low",
+      "default_confidence": "low",
+      "class": "heuristic",
+      "languages": [
+        "python"
+      ],
+      "description": "The review changes source files but contains no change to a file matching the configured test conventions. This is a heuristic, not proof that tests are missing: tests may already cover the behaviour, the convention may not match this repository, or the change may not need tests at all.",
+      "remediation": "Confirm that existing tests cover the changed behaviour, or add the missing test in this pull request.",
+      "test_recommendation": "Add or extend a test that exercises the changed branch.",
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "TST002": {
+      "rule_id": "TST002",
+      "title": "Changed line is not covered by the supplied coverage report",
+      "category": "testing",
+      "default_severity": "low",
+      "default_confidence": "medium",
+      "class": "deterministic",
+      "languages": [
+        "python"
+      ],
+      "description": "A supplied Cobertura report lists this changed line and records zero hits. The report explicitly covers the line, which is stronger than an inference from the presence or absence of test files.",
+      "remediation": "Add a test that executes this line, or confirm the line is unreachable.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    },
+    "TST003": {
+      "rule_id": "TST003",
+      "title": "Coverage report does not mention a changed file",
+      "category": "testing",
+      "default_severity": "informational",
+      "default_confidence": "medium",
+      "class": "heuristic",
+      "languages": [
+        "python"
+      ],
+      "description": "The supplied coverage report contains no entry for a file that this review changes. The usual cause is an outdated report or a file that is not imported by the test suite. No percentage is claimed for this file.",
+      "remediation": "Regenerate the coverage report for this revision before drawing conclusions.",
+      "test_recommendation": null,
+      "documentation": "docs/ANALYSIS_RULES.md"
+    }
+  }
+}

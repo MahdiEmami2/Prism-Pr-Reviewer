@@ -1,0 +1,146 @@
+name: ci
+
+# Minimal permissions. Nothing in this workflow needs to write to the repository, so the
+# token is read-only and the analysis job cannot push, comment or change settings.
+permissions:
+  contents: read
+
+# PRISM analyses untrusted pull-request content. This workflow deliberately uses plain
+# the unprivileged `pull_request` trigger, and it never checks out and executes code from
+# a fork with elevated permissions. No workflow here runs analysed repository code.
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: lint, test and security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install the project and development tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Ruff lint
+        run: ruff check --output-format=github prism tests
+
+      - name: Ruff format check
+        run: ruff format --check prism tests
+
+      - name: Tests with coverage
+        env:
+          # No GitHub token is provided on purpose: the suite must run fully mocked.
+          PRISM_RUN_INTEGRATION: "0"
+        run: python -m pytest --cov=prism --cov-report=term-missing --cov-report=xml -q
+
+      - name: Upload coverage XML as an artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: warn
+          retention-days: 7
+
+  security:
+    name: security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # Needed only to upload the SARIF result to the code-scanning view.
+      security-events: write
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the project and Bandit
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Bandit (static analysis for security issues)
+        run: bandit -r prism -f json -o bandit-report.json || true
+
+      - name: Bandit (human-readable, fails on high severity)
+        run: bandit -r prism -ll
+
+      - name: Upload Bandit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Verify no credential file was committed
+        run: |
+          if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+            echo "::error::A real .env file is tracked. Remove it and rotate any exposed secret."
+            exit 1
+          fi
+          echo "No .env file is tracked."
+
+  docker:
+    name: container build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build the image
+        run: docker build --tag prism:ci .
+
+      - name: Smoke-test the image
+        run: |
+          docker run --detach --name prism-ci --publish 8000:8000 prism:ci
+          for attempt in $(seq 1 20); do
+            if curl --silent --fail http://127.0.0.1:8000/health > /tmp/health.json; then
+              cat /tmp/health.json
+              docker rm --force prism-ci >/dev/null
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::PRISM did not answer /health inside the container"
+          docker logs prism-ci
+          docker rm --force prism-ci >/dev/null
+          exit 1
