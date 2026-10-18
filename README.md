@@ -1,8 +1,31 @@
+<a id="readme-top"></a>
+
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="assets/prism-wordmark-light.svg">
+  <img src="assets/prism-wordmark-dark.svg" alt="PRISM — Intelligent Pull Request Reviewer" width="610">
+</picture>
+
+**Evidence-first code review for diffs and GitHub pull requests — deterministic, offline, auditable.**
+
+[Install](#5-installation) · [Local diff](#6-local-diff-usage) · [GitHub PR](#7-github-pr-usage) · [API](#8-api-examples) · [Rules](#10-rule-catalog) · [Security](#14-security-and-privacy-notes) · [Limitations](#15-limitations) · [Deutsch](#projektzusammenfassung-deutsch)
+
+</div>
+
 # PRISM — Intelligent Pull Request Reviewer
 
 [![CI](https://img.shields.io/badge/CI-lint%20%2B%20tests-blue)](.github/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Pytest](https://img.shields.io/badge/tests-pytest-ad1457)
+![Ruff](https://img.shields.io/badge/lint-ruff-bf4b00)
+![Bandit](https://img.shields.io/badge/security-bandit-b71c1c)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
+![Offline](https://img.shields.io/badge/runs-offline-455a64)
+![No LLM](https://img.shields.io/badge/LLM-none-6a1b9a)
 
 PRISM reviews a **unified diff** or a **GitHub Pull Request** and returns normalised,
 citable code-review findings: what changed, why it matters, how to fix it, and how strongly
@@ -10,6 +33,45 @@ the evidence supports the claim.
 
 Core analysis is deterministic and runs entirely offline. There is no LLM, no paid API and
 no cloud dependency. PRISM never imports, compiles or executes the code it reviews.
+
+## At a glance
+
+| | |
+| --- | --- |
+| 🔍 **Evidence first** | A rule fires only when the construct is in the *changed lines*. |
+| 🎯 **Honest confidence** | Severity (impact) and confidence (evidence strength) are separate dimensions. |
+| 🆔 **Stable identity** | Finding IDs ignore line numbers, so a moved finding keeps its ID. |
+| 🧾 **Scope reporting** | Skipped files, unparsable patches and reached limits are always reported. |
+| 🔒 **Safe by design** | Offline, read-only, never executes the reviewed code. |
+| 📄 **Reproducible output** | Markdown and JSON reports; identical input gives byte-identical JSON. |
+
+> [!NOTE]
+> PRISM makes no coverage, performance or AI-quality claims it cannot back with evidence. See [Limitations](#15-limitations).
+
+<details>
+<summary><strong>Table of contents</strong></summary>
+
+1. [Project overview](#1-project-overview)
+2. [Problem and solution](#2-problem-and-solution)
+3. [Feature list](#3-feature-list)
+4. [Architecture](#4-architecture)
+5. [Installation](#5-installation)
+6. [Local diff usage](#6-local-diff-usage)
+7. [GitHub PR usage](#7-github-pr-usage)
+8. [API examples](#8-api-examples)
+9. [Configuration](#9-configuration)
+10. [Rule catalog](#10-rule-catalog)
+11. [Sample report](#11-sample-report)
+12. [Testing and quality checks](#12-testing-and-quality-checks)
+13. [Docker instructions](#13-docker-instructions)
+14. [Security and privacy notes](#14-security-and-privacy-notes)
+15. [Limitations](#15-limitations)
+16. [Roadmap](#16-roadmap)
+17. [Contribution guide](#17-contribution-guide)
+18. [Projektzusammenfassung (Deutsch)](#projektzusammenfassung-deutsch)
+19. [Licence](#licence)
+
+</details>
 
 ---
 
@@ -82,6 +144,11 @@ prism/
 
 Data flow: `diff text → parse_unified_diff → analyze_parsed_diff → deduplicate → apply_policy
 → ReviewResult → Markdown / JSON / API response`.
+
+<div align="center">
+  <img src="assets/prism-pipeline.svg" alt="PRISM review pipeline: input, parse, analyze, deduplicate, apply policy, output" width="900">
+  <p><em>The review pipeline, from diff text to report.</em></p>
+</div>
 
 Full detail, including the untrusted-input boundary and the decisions behind each module, is
 in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
@@ -420,5 +487,5 @@ Security-Engineering — und dokumentiert bewusst auch Grenzen der Analyse.
 
 MIT — see [`LICENSE`](LICENSE). The licence choice is a documented assumption (`PLAN.md` §0);
 verify it matches your intent before publishing.
-#   P r i s m - P r - R e v i e w e r  
- 
+
+<p align="right"><a href="#readme-top">↑ back to top</a></p>
