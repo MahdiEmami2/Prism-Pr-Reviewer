@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="270" viewBox="0 0 1020 270" role="img" aria-label="PRISM review pipeline">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+    <style>
+      .box{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}
+      .tx{font:400 12px 'Segoe UI',Helvetica,Arial,sans-serif;fill:#475569}
+      .ar{stroke:#64748b;stroke-width:2;fill:none}
+    </style>
+  </defs>
+  <rect width="1020" height="270" rx="16" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="510" y="36" text-anchor="middle" style="font:700 17px 'Segoe UI',Helvetica,Arial,sans-serif;fill:#0f172a">PRISM review pipeline</text>
+  <rect class="box" x="20" y="64" width="140" height="130" rx="12"/><rect x="20" y="64" width="140" height="6" rx="3" fill="url(#g)"/>
+<text x="90.0" y="102" text-anchor="middle" style="font:700 15px 'Segoe UI',Helvetica,Arial,sans-serif;fill:#0f172a">Input</text>
+<text x="90.0" y="132" text-anchor="middle" class="tx">unified diff file</text>
+<text x="90.0" y="152" text-anchor="middle" class="tx">local Git tree</text>
+<text x="90.0" y="172" text-anchor="middle" class="tx">GitHub PR (read-only)</text>
+<path class="ar" d="M162 129.0 H186" marker-end="url(#a)"/>
+<rect class="box" x="188" y="64" width="140" height="130" rx="12"/><rect x="188" y="64" width="140" height="6" rx="3" fill="url(#g)"/>
+<text x="258.0" y="102" text-anchor="middle" style="font:700 11.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#0f172a">parse_unified_diff</text>
+<text x="258.0" y="132" text-anchor="middle" class="tx">diff text → files</text>
+<text x="258.0" y="152" text-anchor="middle" class="tx">and changed lines</text>
+<path class="ar" d="M330 129.0 H354" marker-end="url(#a)"/>
+<rect class="box" x="356" y="64" width="140" height="130" rx="12"/><rect x="356" y="64" width="140" height="6" rx="3" fill="url(#g)"/>
+<text x="426.0" y="102" text-anchor="middle" style="font:700 11.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#0f172a">analyze_parsed_diff</text>
+<text x="426.0" y="132" text-anchor="middle" class="tx">AST, secret and</text>
+<text x="426.0" y="152" text-anchor="middle" class="tx">test-awareness rules</text>
+<path class="ar" d="M498 129.0 H522" marker-end="url(#a)"/>
+<rect class="box" x="524" y="64" width="140" height="130" rx="12"/><rect x="524" y="64" width="140" height="6" rx="3" fill="url(#g)"/>
+<text x="594.0" y="102" text-anchor="middle" style="font:700 11.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#0f172a">deduplicate</text>
+<text x="594.0" y="132" text-anchor="middle" class="tx">stable finding IDs</text>
+<text x="594.0" y="152" text-anchor="middle" class="tx">(no line numbers)</text>
+<path class="ar" d="M666 129.0 H690" marker-end="url(#a)"/>
+<rect class="box" x="692" y="64" width="140" height="130" rx="12"/><rect x="692" y="64" width="140" height="6" rx="3" fill="url(#g)"/>
+<text x="762.0" y="102" text-anchor="middle" style="font:700 11.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#0f172a">apply_policy</text>
+<text x="762.0" y="132" text-anchor="middle" class="tx">severity filter,</text>
+<text x="762.0" y="152" text-anchor="middle" class="tx">excluded rules</text>
+<path class="ar" d="M834 129.0 H858" marker-end="url(#a)"/>
+<rect class="box" x="860" y="64" width="140" height="130" rx="12"/><rect x="860" y="64" width="140" height="6" rx="3" fill="url(#g)"/>
+<text x="930.0" y="102" text-anchor="middle" style="font:700 15px 'Segoe UI',Helvetica,Arial,sans-serif;fill:#0f172a">Output</text>
+<text x="930.0" y="132" text-anchor="middle" class="tx">Markdown report</text>
+<text x="930.0" y="152" text-anchor="middle" class="tx">JSON document</text>
+<text x="930.0" y="172" text-anchor="middle" class="tx">API response</text>
+  <text x="510" y="236" text-anchor="middle" class="tx">Deterministic, offline, read-only: analysed code is never imported, compiled or executed.</text>
+</svg>

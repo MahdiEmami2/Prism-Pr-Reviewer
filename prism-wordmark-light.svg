@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="610" height="140" viewBox="0 0 610 140" role="img" aria-label="PRISM — Intelligent Pull Request Reviewer">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <!-- prism icon: incoming white beam, triangle, split spectrum -->
+  <line x1="4" y1="74" x2="66" y2="66" stroke="#0f172a" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <polygon points="50,18 100,108 0,108" transform="translate(42,0)" fill="none" stroke="url(#g)" stroke-width="6" stroke-linejoin="round"/>
+  <g stroke-width="4" stroke-linecap="round">
+    <line x1="118" y1="62" x2="168" y2="40" stroke="#ef4444"/>
+    <line x1="122" y1="70" x2="170" y2="58" stroke="#f59e0b"/>
+    <line x1="127" y1="78" x2="172" y2="76" stroke="#22c55e"/>
+    <line x1="131" y1="86" x2="170" y2="94" stroke="#3b82f6"/>
+    <line x1="134" y1="94" x2="166" y2="112" stroke="#8b5cf6"/>
+  </g>
+  <text x="196" y="82" font-family="'Segoe UI','Helvetica Neue',Helvetica,Arial,sans-serif" font-size="68" font-weight="800" letter-spacing="2" fill="#0f172a">PRISM</text>
+  <text x="198" y="116" font-family="'Segoe UI','Helvetica Neue',Helvetica,Arial,sans-serif" font-size="19" font-weight="500" letter-spacing="0.5" fill="#475569">Intelligent Pull Request Reviewer</text>
+</svg>
